@@ -1,6 +1,6 @@
 # 🌿 Sneho: Personalizing Childcare with Heart & Intelligence
 
-[![Standard](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![Standard](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![Modern](https://img.shields.io/badge/Tailwind-CSS_4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![Database](https://img.shields.io/badge/Prisma-MySQL-2D3748?logo=prisma)](https://www.prisma.io/)
 [![Chat](https://img.shields.io/badge/Powered_by-Stream-005FFF?logo=getstream)](https://getstream.io/)
@@ -12,7 +12,7 @@
 
 ## 🔗 Live Experience
 
-### 🌐 [Live Demo URL](https://sneho.com) *(Replace with your actual URL)*
+### 🌐 [Live Demo URL](https://sneho.vercel.app/) *(Replace with your actual URL)*
 
 To experience the platform without creating new accounts, you can use the following test credentials:
 
@@ -53,7 +53,7 @@ Our proprietary matching engine analyzes:
 Sneho is built with a focus on **performance, scalability, and security**, following a modern **MVC pattern**.
 
 ### **Core Stack**
-- **Frontend:** Next.js 15 (App Router), React 19, Tailwind CSS 4
+- **Frontend:** Next.js 16 (App Router), React 19, Tailwind CSS 4
 - **Backend:** Node.js (Express 5.x)
 - **Database:** MySQL with Prisma ORM
 - **Communication:** GetStream (Chat & Video), Socket.IO
