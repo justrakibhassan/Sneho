@@ -12,7 +12,7 @@
 
 ## 🔗 Live Experience
 
-### 🌐 [Live Demo URL](https://sneho.vercel.app/) *(Replace with your actual URL)*
+### 🌐 [Live Demo URL](https://sneho.vercel.app/): [Sneho](https://sneho.vercel.app/)
 
 To experience the platform without creating new accounts, you can use the following test credentials:
 
@@ -96,7 +96,7 @@ Sneho offers a structured subscription model:
 
 Built with ❤️ by **Rakib**
 
-If you are a recruiter or developer interested in this project, feel free to reach out. I am committed to building the future of childcare.
+<!-- If you are a recruiter or developer interested in this project, feel free to reach out. I am committed to building the future of childcare. -->
 
 ---
 
