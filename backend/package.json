@@ -1,0 +1,49 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "postinstall": "prisma generate",
+  "scripts": {
+    "dev": "tsx watch server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc || true",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:studio": "prisma studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@prisma/client": "^5.10.0",
+    "@stream-io/node-sdk": "^0.7.32",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.16.0",
+    "nodemailer": "^7.0.12",
+    "socket.io": "^4.8.3",
+    "stream-chat": "^9.27.2",
+    "stripe": "^20.1.2"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.0.6",
+    "@types/nodemailer": "^7.0.5",
+    "@types/socket.io": "^3.0.1",
+    "nodemon": "^3.1.11",
+    "prisma": "^5.10.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

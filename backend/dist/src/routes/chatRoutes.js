@@ -1,0 +1,10 @@
+import express from "express";
+import { getConversations, getMessages, sendMessage, getStreamChatToken, createOrGetConversation, } from "../controllers/chatController.js";
+import { protect } from "../middleware/authMiddleware.js";
+const router = express.Router();
+router.get("/token", protect, getStreamChatToken);
+router.get("/conversations", protect, getConversations);
+router.post("/conversation", protect, createOrGetConversation);
+router.get("/:bookingId", protect, getMessages);
+router.post("/", protect, sendMessage);
+export default router;

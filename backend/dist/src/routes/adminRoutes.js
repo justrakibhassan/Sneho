@@ -1,0 +1,16 @@
+import express from "express";
+import { getAdminStats, getPendingApprovals, approveSitter, getAllBookings, rejectSitter, getPendingSitters, updateBookingStatus, getAllUsers, manageUser, getUserById, } from "../controllers/adminController.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
+const router = express.Router();
+router.get("/stats", protect, adminOnly, getAdminStats);
+router.get("/approvals", protect, adminOnly, getPendingApprovals);
+router.put("/approve/:id", protect, adminOnly, approveSitter);
+router.get("/users", protect, adminOnly, getAllUsers);
+router.patch("/users/:id", protect, adminOnly, manageUser);
+router.get("/users/:id", protect, adminOnly, getUserById);
+router.get("/bookings", protect, adminOnly, getAllBookings);
+router.put("/bookings/:id", protect, adminOnly, updateBookingStatus);
+router.get("/pending-sitters", protect, adminOnly, getPendingSitters);
+router.put("/approve-sitter/:id", protect, adminOnly, approveSitter);
+router.put("/reject-sitter/:id", protect, adminOnly, rejectSitter);
+export default router;

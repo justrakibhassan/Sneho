@@ -1,0 +1,410 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model activitylog {
+  id          Int         @id @default(autoincrement())
+  reportId    Int
+  type        String
+  description String?
+  photoUrl    String?
+  timestamp   DateTime    @default(now())
+  dailyreport dailyreport @relation(fields: [reportId], references: [id], map: "ActivityLog_reportId_fkey")
+
+  @@index([reportId], map: "ActivityLog_reportId_fkey")
+}
+
+model adminlog {
+  id        Int      @id @default(autoincrement())
+  adminId   Int
+  action    String
+  timestamp DateTime @default(now())
+  user      user     @relation(fields: [adminId], references: [id], map: "AdminLog_adminId_fkey")
+
+  @@index([adminId], map: "AdminLog_adminId_fkey")
+}
+
+model availability {
+  id           Int        @id @default(autoincrement())
+  babysitterId Int
+  dayOfWeek    String
+  startTime    String
+  endTime      String
+  isAvailable  Boolean    @default(true)
+  babysitter   babysitter @relation(fields: [babysitterId], references: [id], onDelete: Cascade, map: "Availability_babysitterId_fkey")
+
+  @@index([babysitterId], map: "Availability_babysitterId_fkey")
+}
+
+model babysitter {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @unique(map: "Babysitter_userId_key")
+  bio             String?   @db.LongText
+  experienceYears Int?
+  hourlyRate      Float?
+  locationAddress String?
+  latitude        Decimal?  @db.Decimal(10, 8)
+  longitude       Decimal?  @db.Decimal(11, 8)
+  averageRating   Float     @default(0)
+  totalRatings    Int       @default(0)
+  dob             DateTime?
+  gender          String?
+  isApproved      Boolean   @default(false)
+  skills          String?   @db.LongText
+
+  // Matching algorithm fields
+  preferredAgeGroup   String? // "0-2", "3-5", "6-12", "Any"
+  handlesSpecialNeeds Boolean? @default(false)
+  energyCompatibility Int?     @default(5) // 1-10, how active children they prefer
+
+  availability  availability[]
+  user          user            @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Babysitter_userId_fkey")
+  booking       booking[]
+  certification certification[]
+  review        review[]
+  session       session[]
+  favoritedBy   favorite[]
+}
+
+model booking {
+  id           Int            @id @default(autoincrement())
+  parentId     Int
+  babysitterId Int
+  startTime    DateTime
+  endTime      DateTime
+  status       booking_status @default(PENDING)
+  meetingLink  String?
+  actualStart  DateTime?
+  actualEnd    DateTime?
+  gpsLogs      String?        @db.LongText
+  totalAmount  Decimal        @default(0.000000000000000000000000000000)
+  tipAmount    Decimal        @default(0.000000000000000000000000000000)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  babysitter   babysitter     @relation(fields: [babysitterId], references: [id], map: "Booking_babysitterId_fkey")
+  parent       parent         @relation(fields: [parentId], references: [id], map: "Booking_parentId_fkey")
+  conversation conversation?
+  dailyreport  dailyreport?
+  payment      payment?
+  review       review?
+  session      session?
+
+  @@index([babysitterId], map: "Booking_babysitterId_fkey")
+  @@index([parentId], map: "Booking_parentId_fkey")
+}
+
+model certification {
+  id           Int        @id @default(autoincrement())
+  babysitterId Int
+  title        String
+  documentUrl  String
+  issuedBy     String?
+  issueDate    DateTime?
+  babysitter   babysitter @relation(fields: [babysitterId], references: [id], onDelete: Cascade, map: "Certification_babysitterId_fkey")
+
+  @@index([babysitterId], map: "Certification_babysitterId_fkey")
+}
+
+model child {
+  id              Int     @id @default(autoincrement())
+  parentId        Int
+  name            String
+  age             Int
+  gender          String?
+  specialNeeds    String?
+  stubbornnessLvl Int     @default(1)
+  interests       String? @db.LongText
+
+  // Matching algorithm fields
+  energyLevel Int?    @default(5) // 1-10 scale (1=calm, 10=very active)
+  temperament String? // "Easy", "Moderate", "Challenging"
+
+  parent parent @relation(fields: [parentId], references: [id], onDelete: Cascade, map: "Child_parentId_fkey")
+
+  @@index([parentId], map: "Child_parentId_fkey")
+}
+
+model conversation {
+  id                              Int       @id @default(autoincrement())
+  bookingId                       Int?      @unique(map: "Conversation_bookingId_key")
+  createdAt                       DateTime  @default(now())
+  updatedAt                       DateTime  @updatedAt
+  user1Id                         Int
+  user2Id                         Int
+  booking                         booking?  @relation(fields: [bookingId], references: [id], map: "Conversation_bookingId_fkey")
+  user_conversation_user1IdTouser user      @relation("conversation_user1IdTouser", fields: [user1Id], references: [id], map: "Conversation_user1Id_fkey")
+  user_conversation_user2IdTouser user      @relation("conversation_user2IdTouser", fields: [user2Id], references: [id], map: "Conversation_user2Id_fkey")
+  message                         message[]
+
+  @@unique([user1Id, user2Id], map: "Conversation_user1Id_user2Id_key")
+  @@index([user2Id], map: "Conversation_user2Id_fkey")
+}
+
+model dailyreport {
+  id          Int           @id @default(autoincrement())
+  bookingId   Int           @unique(map: "DailyReport_bookingId_key")
+  notes       String?       @db.Text
+  moodRating  Int?
+  createdAt   DateTime      @default(now())
+  activitylog activitylog[]
+  booking     booking       @relation(fields: [bookingId], references: [id], map: "DailyReport_bookingId_fkey")
+}
+
+model message {
+  id                            Int          @id @default(autoincrement())
+  conversationId                Int
+  senderId                      Int
+  content                       String       @db.Text
+  isRead                        Boolean      @default(false)
+  type                          message_type @default(USER)
+  createdAt                     DateTime     @default(now())
+  receiverId                    Int
+  userId                        Int?
+  conversation                  conversation @relation(fields: [conversationId], references: [id], map: "Message_conversationId_fkey")
+  user_message_receiverIdTouser user         @relation("message_receiverIdTouser", fields: [receiverId], references: [id], map: "Message_receiverId_fkey")
+  user_message_senderIdTouser   user         @relation("message_senderIdTouser", fields: [senderId], references: [id], map: "Message_senderId_fkey")
+  user_message_userIdTouser     user?        @relation("message_userIdTouser", fields: [userId], references: [id], map: "Message_userId_fkey")
+
+  @@index([conversationId], map: "Message_conversationId_fkey")
+  @@index([receiverId], map: "Message_receiverId_fkey")
+  @@index([senderId], map: "Message_senderId_fkey")
+  @@index([userId], map: "Message_userId_fkey")
+}
+
+model parent {
+  id              Int     @id @default(autoincrement())
+  userId          Int     @unique(map: "Parent_userId_key")
+  locationAddress String?
+  minBudget       Float?
+  maxBudget       Float?
+  situation       String? @db.LongText
+  requiredDays    String? @db.LongText
+
+  // Matching algorithm fields
+  latitude          Float? // For distance calculation
+  longitude         Float? // For distance calculation
+  preferredDistance Int?    @default(10) // km radius
+  preferredGender   String? // "Male", "Female", "Any"
+
+  booking   booking[]
+  child     child[]
+  user      user       @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Parent_userId_fkey")
+  session   session[]
+  favorites favorite[]
+}
+
+model payment {
+  id            Int            @id @default(autoincrement())
+  bookingId     Int            @unique(map: "Payment_bookingId_key")
+  transactionId String         @unique(map: "Payment_transactionId_key")
+  amount        Decimal
+  currency      String         @default("BDT")
+  status        payment_status @default(PENDING)
+  method        String?
+  paymentDate   DateTime       @default(now())
+  booking       booking        @relation(fields: [bookingId], references: [id], map: "Payment_bookingId_fkey")
+}
+
+model review {
+  id                           Int         @id @default(autoincrement())
+  bookingId                    Int         @unique(map: "Review_bookingId_key")
+  reviewerId                   Int
+  revieweeId                   Int
+  rating                       Int
+  comment                      String?     @db.Text
+  punctuality                  Int?
+  professionalism              Int?
+  communication                Int?
+  createdAt                    DateTime    @default(now())
+  booking                      booking     @relation(fields: [bookingId], references: [id], map: "Review_bookingId_fkey")
+  user_review_revieweeIdTouser user        @relation("review_revieweeIdTouser", fields: [revieweeId], references: [id], map: "Review_revieweeId_fkey")
+  user_review_reviewerIdTouser user        @relation("review_reviewerIdTouser", fields: [reviewerId], references: [id], map: "Review_reviewerId_fkey")
+  babysitter                   babysitter? @relation(fields: [babysitterId], references: [id])
+  babysitterId                 Int?
+
+  @@index([revieweeId], map: "Review_revieweeId_fkey")
+  @@index([reviewerId], map: "Review_reviewerId_fkey")
+}
+
+model sosalert {
+  id         Int             @id @default(autoincrement())
+  userId     Int
+  latitude   Decimal         @db.Decimal(10, 8)
+  longitude  Decimal         @db.Decimal(11, 8)
+  status     sosalert_status @default(ACTIVE)
+  createdAt  DateTime        @default(now())
+  resolvedAt DateTime?
+  user       user            @relation(fields: [userId], references: [id], map: "SOSAlert_userId_fkey")
+
+  @@index([userId], map: "SOSAlert_userId_fkey")
+}
+
+model user {
+  id                                      Int                 @id @default(autoincrement())
+  email                                   String              @unique(map: "User_email_key")
+  password                                String
+  role                                    user_role           @default(USER)
+  isApproved                              Boolean             @default(false)
+  isVerified                              Boolean             @default(false)
+  profilePicture                          String?
+  phoneNumber                             String?
+  createdAt                               DateTime            @default(now())
+  updatedAt                               DateTime            @updatedAt
+  isBanned                                Boolean             @default(false)
+  name                                    String?
+  sitterStatus                            user_sitterStatus   @default(NONE)
+  resetPasswordToken                      String?
+  resetPasswordExpires                    DateTime?
+  adminlog                                adminlog[]
+  babysitter                              babysitter?
+  conversation_conversation_user1IdTouser conversation[]      @relation("conversation_user1IdTouser")
+  conversation_conversation_user2IdTouser conversation[]      @relation("conversation_user2IdTouser")
+  message_message_receiverIdTouser        message[]           @relation("message_receiverIdTouser")
+  message_message_senderIdTouser          message[]           @relation("message_senderIdTouser")
+  message_message_userIdTouser            message[]           @relation("message_userIdTouser")
+  parent                                  parent?
+  review_review_revieweeIdTouser          review[]            @relation("review_revieweeIdTouser")
+  review_review_reviewerIdTouser          review[]            @relation("review_reviewerIdTouser")
+  sosalert                                sosalert[]
+  emergencycontacts                       emergency_contact[]
+}
+
+enum user_role {
+  USER
+  PARENT
+  BABYSITTER
+  ADMIN
+}
+
+enum sosalert_status {
+  ACTIVE
+  RESOLVED
+}
+
+enum booking_status {
+  PENDING
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  LIVE
+  COMPLETED
+}
+
+enum message_type {
+  USER
+  SYSTEM
+  BOT
+}
+
+enum payment_status {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum user_sitterStatus {
+  NONE
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model session {
+  id             Int            @id @default(autoincrement())
+  bookingId      Int            @unique(map: "Session_bookingId_key")
+  booking        booking        @relation(fields: [bookingId], references: [id], map: "Session_bookingId_fkey")
+  sitterId       Int
+  sitter         babysitter     @relation(fields: [sitterId], references: [id], map: "Session_sitterId_fkey")
+  parentId       Int
+  parent         parent         @relation(fields: [parentId], references: [id], map: "Session_parentId_fkey")
+  status         session_status @default(NOT_STARTED)
+  startTime      DateTime?
+  pauseTime      DateTime?
+  endTime        DateTime?
+  totalDuration  Int            @default(0)
+  pausedDuration Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  locations      location[]
+  logs           sessionlog[]
+
+  @@index([sitterId], map: "Session_sitterId_fkey")
+  @@index([parentId], map: "Session_parentId_fkey")
+}
+
+model location {
+  id        Int      @id @default(autoincrement())
+  sessionId Int
+  session   session  @relation(fields: [sessionId], references: [id], map: "Location_sessionId_fkey")
+  latitude  Float
+  longitude Float
+  accuracy  Float?
+  timestamp DateTime @default(now())
+
+  @@index([sessionId, timestamp], map: "Location_sessionId_timestamp_idx")
+}
+
+model sessionlog {
+  id        Int            @id @default(autoincrement())
+  sessionId Int
+  session   session        @relation(fields: [sessionId], references: [id], map: "SessionLog_sessionId_fkey")
+  action    session_action
+  timestamp DateTime       @default(now())
+  notes     String?        @db.Text
+
+  @@index([sessionId], map: "SessionLog_sessionId_fkey")
+}
+
+enum session_status {
+  NOT_STARTED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum session_action {
+  STARTED
+  PAUSED
+  RESUMED
+  COMPLETED
+  CANCELLED
+}
+
+model systemconfig {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String
+}
+
+model emergency_contact {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  name         String
+  phoneNumber  String
+  relationship String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model favorite {
+  id           Int        @id @default(autoincrement())
+  parentId     Int
+  babysitterId Int
+  createdAt    DateTime   @default(now())
+  parent       parent     @relation(fields: [parentId], references: [id], onDelete: Cascade, map: "Favorite_parentId_fkey")
+  babysitter   babysitter @relation(fields: [babysitterId], references: [id], onDelete: Cascade, map: "Favorite_babysitterId_fkey")
+
+  @@unique([parentId, babysitterId], map: "Favorite_parentId_babysitterId_key")
+  @@index([parentId], map: "Favorite_parentId_fkey")
+  @@index([babysitterId], map: "Favorite_babysitterId_fkey")
+}

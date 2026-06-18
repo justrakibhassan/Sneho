@@ -1,0 +1,10 @@
+import express from "express";
+import { logActivity, getDailyReport, updateDailyReport, getSitterReports, getParentReports, } from "../controllers/activityController.js";
+import { protect, sitterOnly, parentOnly } from "../middleware/authMiddleware.js";
+const router = express.Router();
+router.post("/log", protect, sitterOnly, logActivity);
+router.get("/report/:bookingId", protect, getDailyReport);
+router.get("/reports", protect, sitterOnly, getSitterReports);
+router.get("/parent-reports", protect, parentOnly, getParentReports);
+router.patch("/report/:bookingId", protect, sitterOnly, updateDailyReport);
+export default router;

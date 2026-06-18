@@ -1,0 +1,34 @@
+import prisma from "../config/db.js";
+// @desc    Get Parent Profile by User ID
+// @route   GET /api/parents/:id
+// @access  Public (or Private depending on requirements)
+export const getParentById = async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                profilePicture: true,
+                createdAt: true,
+                parent: {
+                    include: {
+                        child: true,
+                    },
+                },
+            },
+        });
+        if (!user || !user.parent) {
+            return res
+                .status(404)
+                .json({ success: false, message: "Parent not found" });
+        }
+        res.status(200).json({ success: true, data: user });
+    }
+    catch (error) {
+        console.error("getParentById Error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
