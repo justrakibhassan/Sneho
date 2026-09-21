@@ -90,15 +90,10 @@ Sneho offers a structured subscription model:
 
 ---
 
----
-
 ## 👨‍💻 Author
 
-Built with ❤️ by **Rakib**
-
-<!-- If you are a recruiter or developer interested in this project, feel free to reach out. I am committed to building the future of childcare. -->
+Designed & built with ❤️ by [Rakib Hassan](https://rakibhassan.vercel.app).
 
 ---
 
 *© 2026 Sneho. All rights reserved.*
-# Sneho
